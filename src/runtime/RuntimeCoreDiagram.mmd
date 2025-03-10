@@ -1,0 +1,35 @@
+flowchart TD
+ subgraph subGraph0["Runtime Core Structure"]
+        CONFIG["Configuration"]
+        RT["Runtime 3 Main pts"]
+        GLOBAL["Global Runtime Instance"]
+        API["Runtime Traits"]
+        STACK["Stack Size"]
+        MAX_THREADS["Max Thread Count"]
+        IO_CONFIG["I/O Configuration"]
+        SPAWN["spawn()"]
+        RUN["run()"]
+        YIELD["yield_now()"]
+  end
+    RT --> CONFIG & GLOBAL & API
+    CONFIG --> STACK & MAX_THREADS & IO_CONFIG
+    API --> SPAWN & RUN & YIELD
+
+     CONFIG:::mvp
+     RT:::mvp
+     GLOBAL:::mvp
+     API:::mvp
+     STACK:::mvp
+     MAX_THREADS:::mvp
+     IO_CONFIG:::future
+     SPAWN:::mvp
+     RUN:::mvp
+     YIELD:::mvp
+    classDef mvp stroke:#333,stroke-width:2px
+    classDef future fill:#FFD700,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5,color:#000000
+    style CONFIG fill:#FFFFFF,color:#000000
+    style RT fill:#FFFFFF,color:#000000
+    style GLOBAL fill:#FFFFFF,color:#000000
+    style API fill:#FFFFFF,color:#000000
+
+
