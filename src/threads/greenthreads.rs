@@ -1,7 +1,7 @@
 use crate::context::Context;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use anyhow::Result;
 use std::sync::OnceLock;
-use std::task::Context;
 
 pub struct ThreadId(usize);
 
@@ -19,12 +19,29 @@ impl ThreadId {
     }
 }
 
+pub type StaticThreadFn = impl FnOnce() + 'static;
+pub type NonStaticThreadFn = impl FnOnce();
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub enum ThreadState {
     Ready,
     Running,
     Waiting,
     Completed,
+}
+
+/// simply an entry point for all threads
+extern "C" fn thread_entry(arg: *mut std::ffi::c_void) {
+    unsafe {
+        let f = Box::from_raw(arg as *mut Box<dyn FnOnce()>);
+
+        // call the function
+        f();
+
+        // Mark the thread as completed and Switch back to scheduler
+        todo!();
+
+        unreachable!("Thread function returned to entry point");
+    }
 }
 
 pub struct GreenThread {
@@ -35,4 +52,27 @@ pub struct GreenThread {
     pub thread_id: ThreadId,
 }
 
+impl GreenThread {
+    pub fn new(stack: *mut u8, stack_size: usize, f: StaticThreadFn) -> Result<Self> {
+        let thread_id = ThreadId::new();
 
+        let context = Context::new(stack, stack_size, thread_entry, Box::into_raw(Box::new(f)) as *mut _);
+
+        Ok(Self {
+            context,
+            stack,
+            stack_size,
+            state: ThreadState::Ready,
+            thread_id
+        })
+    }
+
+    pub fn switch_to(&mut self, from: &mut Context) {
+        self.state = ThreadState::Running;
+        Context::swap(from, &mut self.context);
+    }
+}
+
+impl Drop for GreenThread {
+    fn drop(&mut self) {}
+}

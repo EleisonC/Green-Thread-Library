@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use crate::runtime::RuntimeTraits;
+use crate::threads::{StaticThreadFn, ThreadId};
 
 pub struct RuntimeConfig {
     // max number of green threads
@@ -27,7 +28,6 @@ pub struct RuntimeCore {
     io_uring: bool
 }
 
-type ThreadFunction = impl FnOnce() + 'static;
 
 impl RuntimeCore {
     pub fn new() -> Result<Self> {
@@ -49,7 +49,7 @@ impl RuntimeCore {
 }
 
 impl RuntimeTraits for RuntimeCore {
-    fn spawn(&mut self, f: ThreadFunction) -> Result<ThreadId> {
+    fn spawn(&mut self, f: StaticThreadFn) -> Result<ThreadId> {
         // Implementation will create a new green thread, allocate stack,
         // and schedule it to be run
         todo!()
