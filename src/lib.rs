@@ -1,6 +1,7 @@
 mod runtime;
 mod threads;
 mod krono_context;
+mod flux_memory;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
