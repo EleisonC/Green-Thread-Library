@@ -1,3 +1,3 @@
-mod greenthreads;
+mod green_threads;
 
-pub use greenthreads::*;
+pub use green_threads::*;

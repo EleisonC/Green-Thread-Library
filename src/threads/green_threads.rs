@@ -1,8 +1,9 @@
-use crate::context::Context;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use anyhow::Result;
 use std::sync::OnceLock;
+use crate::krono_context::{KronoContext, KronoContextOps};
 
+#[derive(Debug, Copy, Eq, PartialEq, Hash)]
 pub struct ThreadId(usize);
 
 impl ThreadId {
@@ -45,7 +46,7 @@ extern "C" fn thread_entry(arg: *mut std::ffi::c_void) {
 }
 
 pub struct GreenThread {
-    pub context: Context,
+    pub context: KronoContext,
     pub stack: *mut u8, // memory area used as the thread's stack
     pub stack_size: usize, // size of allocated stack
     pub state: ThreadState,
@@ -53,10 +54,18 @@ pub struct GreenThread {
 }
 
 impl GreenThread {
-    pub fn new(stack: *mut u8, stack_size: usize, f: StaticThreadFn) -> Result<Self> {
+    pub unsafe fn new(stack: *mut u8,
+                      stack_size: usize,
+                      f: StaticThreadFn
+    ) -> Result<Self> {
         let thread_id = ThreadId::new();
 
-        let context = Context::new(stack, stack_size, thread_entry, Box::into_raw(Box::new(f)) as *mut _);
+        let context = KronoContext::new(
+            stack,
+            stack_size,
+            thread_entry,
+            Box::into_raw(Box::new(f))
+              as *mut libc::c_void);
 
         Ok(Self {
             context,
@@ -67,9 +76,11 @@ impl GreenThread {
         })
     }
 
-    pub fn switch_to(&mut self, from: &mut Context) {
+    pub fn switch_to(&mut self, from: &mut KronoContext) {
         self.state = ThreadState::Running;
-        Context::swap(from, &mut self.context);
+        unsafe {
+            KronoContext::swap(from, &mut self.context);
+        }
     }
 }
 

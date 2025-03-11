@@ -1,4 +1,6 @@
 use anyhow::{Context, Result};
+use crate::flux_memory::{FluxMemoryManager, FluxMemoryTrait};
+use crate::flux_scheduler::{FluxScheduler, FluxSchedulerTrait};
 use crate::runtime::RuntimeTraits;
 use crate::threads::{StaticThreadFn, ThreadId};
 
@@ -23,8 +25,8 @@ impl Default for RuntimeConfig {
 
 pub struct RuntimeCore {
     config: RuntimeConfig,
-    scheduler:  Scheduler,
-    memory_manager: MemoryManager,
+    scheduler:  FluxScheduler,
+    memory_manager: FluxMemoryManager,
     io_uring: bool
 }
 
@@ -35,8 +37,8 @@ impl RuntimeCore {
     }
 
     pub fn with_config(config: RuntimeConfig) -> Result<Self> {
-        let memory_manager = MemoryManager::new(config.stack_size);
-        let scheduler = Scheduler::new(config.max_threads);
+        let memory_manager = FluxMemoryManager::new(config.stack_size);
+        let scheduler = FluxScheduler::new(config.max_threads);
 
         let runtime = Self {
             config,
