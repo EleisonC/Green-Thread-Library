@@ -7,5 +7,5 @@ pub trait RuntimeTraits {
     /// Run the scheduler until all threads complete
     fn run(&mut self) -> Result<()>;
     /// Yield execution from the current green thread back to the scheduler
-    fn yield_now(&self);
+    fn yield_now(&mut self);
 }

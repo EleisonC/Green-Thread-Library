@@ -39,7 +39,7 @@ extern "C" fn thread_entry(arg: *mut std::ffi::c_void) {
         f();
 
         // Mark the thread as completed and Switch back to scheduler
-        todo!();
+
 
         unreachable!("Thread function returned to entry point");
     }

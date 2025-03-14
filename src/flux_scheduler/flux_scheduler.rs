@@ -46,6 +46,7 @@ impl FluxSchedulerTrait for FluxScheduler {
         }
     }
 
+    /// add a greenthread to ready queue
     fn add_thread(&mut self, thread: GreenThread) -> Result<ThreadId, Error> {
         if self.thread_count >= self.max_threads {
             bail!("Max threads reached");
@@ -102,12 +103,13 @@ impl FluxSchedulerTrait for FluxScheduler {
     }
 
     /// Mark the current thread as waiting and yield back to the scheduler
-    fn wait(&mut self) {
+    fn wait(&mut self, thread: &mut GreenThread) {
         if let Some(thread_id) = self.current_thread {
-            let mut thread = self.waiting_threads.remove(&thread_id).unwrap();
-            thread.state = ThreadState::Waiting;
-            // switch to the thread
-            thread.switch_to(&mut self.scheduler_context);
+            if thread_id == thread.thread_id {
+                thread.state = ThreadState::Waiting;
+                // switch to the thread
+                thread.switch_to(&mut self.scheduler_context);
+            }
         }
     }
 
